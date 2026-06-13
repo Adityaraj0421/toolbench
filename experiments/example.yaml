@@ -1,0 +1,14 @@
+name: calc-vs-fetch
+task: "What is 17% of 2,340? Use a tool. Then state just the number."
+system: "You are precise. Use the available tools when they help."
+max_turns: 6
+models:
+  - openai/gpt-4o-mini
+  - google/gemini-2.0-flash-001
+tools: [calculator, http_fetch]
+variants:
+  - name: baseline
+  - name: terse-desc
+    overrides:
+      calculator: { description: "Math." }
+repeats: 1
