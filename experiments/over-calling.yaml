@@ -1,0 +1,23 @@
+name: over-calling
+# A question the model can answer in its head. The calculator is OFFERED but
+# not NEEDED. We measure how often each model reaches for it anyway, and whether
+# a discouraging tool description suppresses that over-calling.
+task: "What is 7 + 8? Reply with only the number, nothing else."
+system: "You are a careful assistant."
+max_turns: 4
+max_output_tokens: 256
+models:
+  - openai/gpt-4o-mini
+  - google/gemini-2.5-flash
+tools: [calculator]
+variants:
+  # baseline: the plain description (neutral about when to use it)
+  - name: eager
+  # restrained: the description actively discourages trivial use
+  - name: restrained
+    overrides:
+      calculator:
+        description: >-
+          Evaluate arithmetic you cannot reliably compute in your head. Do NOT
+          use this for trivial math (single-digit sums, etc.) you already know.
+repeats: 5
