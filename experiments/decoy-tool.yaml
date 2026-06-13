@@ -1,0 +1,16 @@
+name: decoy-tool
+# Two tools offered: calculator and weather. Each task has exactly ONE correct
+# tool; the other is a decoy. Measures wrong-tool selection in both directions:
+#   - math task   -> correct = calculator, wrong = weather
+#   - weather task -> correct = weather,   wrong = calculator
+system: "You are a careful assistant. Use the right tool for the job."
+max_turns: 4
+max_output_tokens: 256
+models:
+  - openai/gpt-4o-mini
+  - google/gemini-2.5-flash
+tools: [calculator, weather]
+tasks:
+  - { name: math,    prompt: "What is 638 * 47? Reply with only the number." }
+  - { name: weather, prompt: "What is the weather in Tokyo right now? One short sentence." }
+repeats: 5

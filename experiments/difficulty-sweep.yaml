@@ -1,0 +1,20 @@
+name: difficulty-sweep
+# Sweep arithmetic difficulty from trivial to hard, calculator offered with a
+# NEUTRAL description. Measures each model's "trust threshold": the point where
+# it stops doing math in its head and starts reaching for the tool. Low difficulty
+# that triggers a call = over-calling; high difficulty with NO call = under-calling
+# (the model overconfidently does hard math itself, risking a wrong answer).
+system: "You are a careful assistant. Answer correctly."
+max_turns: 4
+max_output_tokens: 256
+models:
+  - openai/gpt-4o-mini
+  - google/gemini-2.5-flash
+tools: [calculator]
+tasks:
+  - { name: d1_single,  prompt: "What is 7 + 8? Reply with only the number." }
+  - { name: d2_twoadd,  prompt: "What is 47 + 58? Reply with only the number." }
+  - { name: d3_twomult, prompt: "What is 23 * 47? Reply with only the number." }
+  - { name: d4_3x2mult, prompt: "What is 347 * 89? Reply with only the number." }
+  - { name: d5_4x4mult, prompt: "What is 4821 * 7639? Reply with only the number." }
+repeats: 5
