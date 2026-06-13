@@ -13,7 +13,7 @@ from toolbench.client import FakeClient, make_response
 def _cfg():
     return ExperimentConfig(
         name="t",
-        task="add",
+        tasks=[{"name": "default", "prompt": "add"}],
         system=None,
         max_turns=4,
         models=["m1", "m2"],
@@ -28,9 +28,27 @@ def _cfg():
 
 def test_expand_matrix():
     cells = expand_matrix(_cfg())
-    assert len(cells) == 4  # 2 models x 2 variants x 1 repeat
+    assert len(cells) == 4  # 1 task x 2 models x 2 variants x 1 repeat
     assert {c.model for c in cells} == {"m1", "m2"}
     assert {c.variant for c in cells} == {"baseline", "terse"}
+    assert {c.task for c in cells} == {"default"}
+
+
+def test_expand_matrix_multiple_tasks():
+    cfg = ExperimentConfig(
+        name="t",
+        tasks=[{"name": "easy", "prompt": "1+1"}, {"name": "hard", "prompt": "8123*42"}],
+        system=None,
+        max_turns=4,
+        models=["m1", "m2"],
+        tools=["calculator"],
+        variants=[{"name": "baseline"}],
+        repeats=1,
+    )
+    cells = expand_matrix(cfg)
+    assert len(cells) == 4  # 2 tasks x 2 models x 1 variant x 1 repeat
+    assert {c.task for c in cells} == {"easy", "hard"}
+    assert {c.task_prompt for c in cells} == {"1+1", "8123*42"}
 
 
 def test_load_experiment_defaults(tmp_path):
@@ -41,6 +59,22 @@ def test_load_experiment_defaults(tmp_path):
     assert cfg.variants == [{"name": "baseline"}]
     assert cfg.repeats == 1
     assert cfg.max_output_tokens == 1024  # default cap
+    assert cfg.tasks == [{"name": "default", "prompt": "hi"}]  # singular task wrapped
+
+
+def test_load_experiment_reads_tasks_list(tmp_path):
+    p = tmp_path / "e.yaml"
+    p.write_text(
+        "name: t\nmodels: [m1]\ntools: [calculator]\n"
+        "tasks:\n"
+        "  - {name: easy, prompt: '1+1'}\n"
+        "  - {name: hard, prompt: '8123*42'}\n"
+    )
+    cfg = load_experiment(p)
+    assert cfg.tasks == [
+        {"name": "easy", "prompt": "1+1"},
+        {"name": "hard", "prompt": "8123*42"},
+    ]
 
 
 def test_load_experiment_reads_max_output_tokens(tmp_path):
@@ -53,6 +87,7 @@ def test_run_experiment_writes_traces(tmp_path):
     responses = [make_response(content="done") for _ in range(4)]
     summaries = run_experiment(_cfg(), FakeClient(responses), out_dir=tmp_path)
     assert len(summaries) == 4
+    assert all(s["task"] == "default" for s in summaries)
     out = Path(tmp_path) / "t"
     assert len(list(out.glob("*.jsonl"))) == 4
     assert (out / "summary.json").exists()
@@ -60,7 +95,9 @@ def test_run_experiment_writes_traces(tmp_path):
 
 def test_format_table_has_headers():
     table = format_table([
-        {"model": "m1", "variant": "baseline", "turns": 2, "total_tokens": 100,
-         "tool_calls": 1, "failures": 0, "latency_ms": 5, "completed": True}
+        {"model": "m1", "task": "default", "variant": "baseline", "turns": 2,
+         "total_tokens": 100, "tool_calls": 1, "failures": 0, "latency_ms": 5,
+         "completed": True}
     ])
     assert "model" in table and "m1" in table
+    assert "task" in table

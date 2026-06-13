@@ -1,9 +1,10 @@
 from .calculator import calculator
 from .files import read_file, write_file
 from .http_fetch import http_fetch
+from .weather import weather
 
 # NOTE: run_shell is deliberately excluded — opt-in only.
-_ALL = [calculator, http_fetch, read_file, write_file]
+_ALL = [calculator, http_fetch, read_file, write_file, weather]
 BUILTINS = {f.tool.name: f for f in _ALL}
 
 

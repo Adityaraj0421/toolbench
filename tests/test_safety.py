@@ -33,3 +33,12 @@ def test_resolve_tools_and_shell_not_registered():
     assert "run_shell" not in BUILTINS
     with pytest.raises(KeyError):
         resolve_tools(["does_not_exist"])
+
+
+def test_weather_decoy_registered():
+    from toolbench.builtins.weather import weather
+
+    assert "weather" in BUILTINS
+    assert resolve_tools(["weather"])[0] is weather
+    out = weather("Paris")
+    assert isinstance(out, str) and "Paris" in out

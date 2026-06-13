@@ -16,6 +16,8 @@ from .tools import ToolRegistry
 @dataclass
 class Cell:
     model: str
+    task: str
+    task_prompt: str
     variant: str
     overrides: dict
     repeat: int
@@ -24,7 +26,7 @@ class Cell:
 @dataclass
 class ExperimentConfig:
     name: str
-    task: str
+    tasks: list  # list of {"name": str, "prompt": str}
     system: str | None
     max_turns: int
     models: list
@@ -34,11 +36,25 @@ class ExperimentConfig:
     max_output_tokens: int = 1024
 
 
+def _normalize_tasks(data: dict) -> list:
+    """Build the task list. Accept a `tasks:` list (dicts or bare strings) or a
+    single `task:` string (wrapped as one task named "default")."""
+    if data.get("tasks"):
+        out = []
+        for i, t in enumerate(data["tasks"]):
+            if isinstance(t, str):
+                out.append({"name": f"t{i + 1}", "prompt": t})
+            else:
+                out.append({"name": t["name"], "prompt": t["prompt"]})
+        return out
+    return [{"name": "default", "prompt": data["task"]}]
+
+
 def load_experiment(path) -> ExperimentConfig:
     data = yaml.safe_load(Path(path).read_text())
     return ExperimentConfig(
         name=data["name"],
-        task=data["task"],
+        tasks=_normalize_tasks(data),
         system=data.get("system"),
         max_turns=data.get("max_turns", 12),
         models=data["models"],
@@ -51,17 +67,20 @@ def load_experiment(path) -> ExperimentConfig:
 
 def expand_matrix(config: ExperimentConfig) -> list[Cell]:
     cells = []
-    for model in config.models:
-        for variant in config.variants:
-            for r in range(config.repeats):
-                cells.append(
-                    Cell(
-                        model=model,
-                        variant=variant["name"],
-                        overrides=variant.get("overrides", {}),
-                        repeat=r,
+    for task in config.tasks:
+        for model in config.models:
+            for variant in config.variants:
+                for r in range(config.repeats):
+                    cells.append(
+                        Cell(
+                            model=model,
+                            task=task["name"],
+                            task_prompt=task["prompt"],
+                            variant=variant["name"],
+                            overrides=variant.get("overrides", {}),
+                            repeat=r,
+                        )
                     )
-                )
     return cells
 
 
@@ -75,10 +94,15 @@ def run_experiment(config: ExperimentConfig, client, out_dir="runs") -> list[dic
     summaries = []
     for cell in expand_matrix(config):
         registry = ToolRegistry(funcs, overrides=cell.overrides)
-        meta = {"experiment": config.name, "variant": cell.variant, "repeat": cell.repeat}
+        meta = {
+            "experiment": config.name,
+            "task": cell.task,
+            "variant": cell.variant,
+            "repeat": cell.repeat,
+        }
         try:
             trace = run_agent(
-                config.task,
+                cell.task_prompt,
                 registry,
                 cell.model,
                 client,
@@ -86,13 +110,12 @@ def run_experiment(config: ExperimentConfig, client, out_dir="runs") -> list[dic
                 max_turns=config.max_turns,
                 meta=meta,
             )
-            fname = f"{_slug(cell.model)}__{cell.variant}__{cell.repeat}.jsonl"
+            fname = f"{_slug(cell.model)}__{_slug(cell.task)}__{cell.variant}__{cell.repeat}.jsonl"
             trace.write(out / fname)
             s = summarize(trace)
         except Exception as e:  # one bad cell never kills the matrix
             s = {
                 "model": cell.model,
-                "variant": cell.variant,
                 "turns": 0,
                 "total_tokens": 0,
                 "tool_calls": 0,
@@ -102,6 +125,7 @@ def run_experiment(config: ExperimentConfig, client, out_dir="runs") -> list[dic
                 "completed": False,
                 "error": f"{type(e).__name__}: {e}",
             }
+        s["task"] = cell.task
         s["variant"] = cell.variant
         s["repeat"] = cell.repeat
         summaries.append(s)
@@ -111,10 +135,11 @@ def run_experiment(config: ExperimentConfig, client, out_dir="runs") -> list[dic
 
 
 def format_table(summaries: list[dict]) -> str:
-    headers = ["model", "variant", "turns", "tokens", "calls", "fail", "ms", "done"]
+    headers = ["model", "task", "variant", "turns", "tokens", "calls", "fail", "ms", "done"]
     rows = [
         [
             s["model"],
+            s.get("task", ""),
             s["variant"],
             s["turns"],
             s["total_tokens"],
