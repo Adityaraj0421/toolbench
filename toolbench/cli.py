@@ -20,7 +20,8 @@ def main(argv=None) -> int:
     args = build_parser().parse_args(argv)
     if args.cmd == "run":
         config = load_experiment(args.config)
-        summaries = run_experiment(config, OpenRouterClient(), out_dir=args.out)
+        client = OpenRouterClient(max_output_tokens=config.max_output_tokens)
+        summaries = run_experiment(config, client, out_dir=args.out)
         print(format_table(summaries))
     return 0
 

@@ -40,6 +40,13 @@ def test_load_experiment_defaults(tmp_path):
     assert cfg.models == ["m1"]
     assert cfg.variants == [{"name": "baseline"}]
     assert cfg.repeats == 1
+    assert cfg.max_output_tokens == 1024  # default cap
+
+
+def test_load_experiment_reads_max_output_tokens(tmp_path):
+    p = tmp_path / "e.yaml"
+    p.write_text("name: t\ntask: hi\nmodels: [m1]\ntools: [calculator]\nmax_output_tokens: 256\n")
+    assert load_experiment(p).max_output_tokens == 256
 
 
 def test_run_experiment_writes_traces(tmp_path):

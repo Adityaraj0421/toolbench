@@ -31,6 +31,7 @@ class ExperimentConfig:
     tools: list
     variants: list
     repeats: int
+    max_output_tokens: int = 1024
 
 
 def load_experiment(path) -> ExperimentConfig:
@@ -44,6 +45,7 @@ def load_experiment(path) -> ExperimentConfig:
         tools=data["tools"],
         variants=data.get("variants") or [{"name": "baseline"}],
         repeats=data.get("repeats", 1),
+        max_output_tokens=data.get("max_output_tokens", 1024),
     )
 
 

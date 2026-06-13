@@ -44,6 +44,9 @@ under `tools:` in an experiment config.
 - `models:` — multi-model A/B (any OpenRouter model string)
 - `variants:` — tweak a tool's `name`/`description`/`parameters` per variant and rerun
 - `repeats:` — run each cell N times to see noise
+- `max_output_tokens:` — per-call output cap (default 1024). Keep it low: OpenRouter
+  reserves worst-case cost against a model's full max, so an uncapped request can 402
+  on a low-credit account even for a one-line answer.
 
 ## Tests
 

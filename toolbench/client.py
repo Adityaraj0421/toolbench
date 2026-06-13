@@ -54,20 +54,33 @@ class FakeClient:
 
 
 class OpenRouterClient:
-    def __init__(self, api_key=None, base_url="https://openrouter.ai/api/v1", max_retries=3):
+    def __init__(
+        self,
+        api_key=None,
+        base_url="https://openrouter.ai/api/v1",
+        max_retries=3,
+        max_output_tokens=1024,
+    ):
         from openai import OpenAI
 
         self._client = OpenAI(
             api_key=api_key or os.environ["OPENROUTER_API_KEY"], base_url=base_url
         )
         self._max_retries = max_retries
+        # Cap per-call output. OpenRouter reserves worst-case cost against the
+        # model's full max_tokens, so leaving this unset 402s on low-credit
+        # accounts even for tiny replies.
+        self._max_output_tokens = max_output_tokens
 
     def chat(self, model, messages, tools) -> ModelResponse:
         last_err = None
         for attempt in range(self._max_retries):
             try:
                 resp = self._client.chat.completions.create(
-                    model=model, messages=messages, tools=tools or None
+                    model=model,
+                    messages=messages,
+                    tools=tools or None,
+                    max_tokens=self._max_output_tokens,
                 )
                 break
             except Exception as e:  # rate limit / transient network
