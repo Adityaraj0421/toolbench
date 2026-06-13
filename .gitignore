@@ -1,0 +1,21 @@
+# Reference material (cloned separately, has its own git history)
+CL4R1T4S/
+
+# gstack / claude runtime
+.gstack/
+.claude/
+
+# toolbench runtime output
+runs/
+workspace/
+
+# secrets
+.env
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
