@@ -1,0 +1,29 @@
+name: under-calling
+# Hard, non-memorized arithmetic that models get WRONG unaided. Calculator is
+# present. Two variants of its description:
+#   - neutral:     plain description
+#   - discouraged: tells the model to prefer its own knowledge
+# Question: does the discouraging description make models wrongly SKIP the tool
+# on math they can't actually do (under-calling), and pay for it in accuracy?
+# System prompt held constant (vs the over-calling/difficulty experiments) so the
+# only thing varying is the tool description.
+system: "You are a careful assistant."
+max_turns: 4
+max_output_tokens: 256
+models:
+  - openai/gpt-4o-mini
+  - google/gemini-2.5-flash
+tools: [calculator]
+tasks:
+  - { name: h1, prompt: "What is 73948 * 6271? Reply with only the number." }
+  - { name: h2, prompt: "What is 918273 * 6452? Reply with only the number." }
+  - { name: h3, prompt: "What is 4827 * 3963 + 18472? Reply with only the number." }
+variants:
+  - name: neutral
+  - name: discouraged
+    overrides:
+      calculator:
+        description: >-
+          Evaluate arithmetic ONLY if you cannot reliably compute it yourself.
+          Prefer answering directly from your own knowledge when you can.
+repeats: 10

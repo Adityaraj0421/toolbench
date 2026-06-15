@@ -1,0 +1,17 @@
+name: no-tools-baseline
+# Same hard arithmetic as under-calling.yaml, but NO tools offered. Establishes
+# unaided accuracy: how often each model gets these right with no calculator.
+# If this is low, it proves the tool is necessary, which makes any under-calling
+# in under-calling.yaml an actual accuracy cost rather than a harmless habit.
+system: "You are a careful assistant."
+max_turns: 2
+max_output_tokens: 256
+models:
+  - openai/gpt-4o-mini
+  - google/gemini-2.5-flash
+tools: []
+tasks:
+  - { name: h1, prompt: "What is 73948 * 6271? Reply with only the number." }
+  - { name: h2, prompt: "What is 918273 * 6452? Reply with only the number." }
+  - { name: h3, prompt: "What is 4827 * 3963 + 18472? Reply with only the number." }
+repeats: 10
