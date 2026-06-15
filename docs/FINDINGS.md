@@ -82,6 +82,38 @@ discouragement when the math was clearly too hard and stayed at 30/30 — better
 tool-use judgment. When Gemini skipped, it produced plausible-but-wrong products
 (e.g. answered `463683628` for `73948*6271`; truth `463727908`).
 
+## Experiment 5 — does under-calling generalize? (6 models)
+
+Re-ran the under-calling design across six models from five vendors
+(`under-calling.yaml` + `under-calling-xmodels.yaml`, n=10; no-tools baselines
+confirmed **0% unaided** for all six). The discouraging-description effect is
+**strongly model-specific** — same sentence, opposite outcomes:
+
+| Model | neutral call / acc | discouraged call / acc | effect |
+|---|---|---|---|
+| gpt-4o-mini | 30/30 / 30/30 | 30/30 / 30/30 | **robust** — ignores it on hard math |
+| deepseek-chat-v3 | 30/30 / 30/30 | 30/30 / 30/30 | **robust** |
+| claude-3.5-haiku | 28/30 / 28/30 | 30/30 / 30/30 | **over-corrects correctly** — calls *more* |
+| llama-3.3-70b | 30/30 / 28/30 | 21/30 / 21/30 | partial under-calling |
+| gemini-2.5-flash | 28/30 / 28/30 | 6/30 / 6/30 | **collapse** (−73 pts) |
+| mistral-small-3.2 | 18/30 / 18/30 | 6/30 / 6/30 | collapse + weak baseline |
+
+Three behavioral clusters:
+1. **Description-proof** (gpt-4o-mini, deepseek-chat-v3): recognize the math is
+   too hard and call the tool regardless of the discouragement. Best judgment.
+2. **Obedient-to-failure** (gemini, mistral, partly llama): take the description
+   literally, skip the tool on math they cannot do, accuracy collapses.
+3. **Over-corrects correctly** (claude-3.5-haiku): reads "use only if you can't
+   do it yourself," concludes it can't, and calls the tool *even more*.
+
+The same discouraging sentence ranged from harmless to catastrophic to
+*beneficial* depending on the model. There is no model-independent "good" tool
+description. (Method note: two minor accuracy miscounts from a naive answer
+parser — scientific notation `1.9...e+07` and trailing text — were caught by
+trace spot-check and fixed; call rates come from recorded tool calls and were
+unaffected. Llama also occasionally echoed the raw tool-call JSON as its final
+answer instead of stating the number, a real formatting quirk.)
+
 ## Takeaways for tool design
 
 1. **Tune the description for the difficulty range you expect.** "Don't use for

@@ -1,0 +1,27 @@
+name: under-calling-xmodels
+# Generalization test: does a discouraging tool description cause under-calling
+# failure across vendors, or is it Gemini-specific? Same hard arithmetic, same
+# two description variants, same controlled system prompt as under-calling.yaml,
+# but four additional models. Combine with runs/under-calling for gpt+gemini.
+system: "You are a careful assistant."
+max_turns: 4
+max_output_tokens: 256
+models:
+  - anthropic/claude-3.5-haiku
+  - meta-llama/llama-3.3-70b-instruct
+  - deepseek/deepseek-chat-v3-0324
+  - mistralai/mistral-small-3.2-24b-instruct
+tools: [calculator]
+tasks:
+  - { name: h1, prompt: "What is 73948 * 6271? Reply with only the number." }
+  - { name: h2, prompt: "What is 918273 * 6452? Reply with only the number." }
+  - { name: h3, prompt: "What is 4827 * 3963 + 18472? Reply with only the number." }
+variants:
+  - name: neutral
+  - name: discouraged
+    overrides:
+      calculator:
+        description: >-
+          Evaluate arithmetic ONLY if you cannot reliably compute it yourself.
+          Prefer answering directly from your own knowledge when you can.
+repeats: 10

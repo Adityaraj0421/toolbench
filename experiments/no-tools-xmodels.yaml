@@ -1,0 +1,17 @@
+name: no-tools-xmodels
+# Unaided accuracy baseline for the four extra models, to confirm the tool is
+# necessary for them too (so any under-calling is a real accuracy cost).
+system: "You are a careful assistant."
+max_turns: 2
+max_output_tokens: 256
+models:
+  - anthropic/claude-3.5-haiku
+  - meta-llama/llama-3.3-70b-instruct
+  - deepseek/deepseek-chat-v3-0324
+  - mistralai/mistral-small-3.2-24b-instruct
+tools: []
+tasks:
+  - { name: h1, prompt: "What is 73948 * 6271? Reply with only the number." }
+  - { name: h2, prompt: "What is 918273 * 6452? Reply with only the number." }
+  - { name: h3, prompt: "What is 4827 * 3963 + 18472? Reply with only the number." }
+repeats: 5
