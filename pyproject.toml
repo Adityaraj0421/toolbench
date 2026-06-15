@@ -1,9 +1,24 @@
 [project]
 name = "toolbench"
 version = "0.1.0"
-description = "A pluggable tool-calling agent experiment bench"
+description = "A tiny harness for experimenting with how tool descriptions change LLM tool-calling behavior across models"
+readme = "README.md"
 requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Aditya Raj" }]
+keywords = ["llm", "agents", "tool-calling", "prompt-engineering", "openrouter", "evaluation"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Intended Audience :: Developers",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 dependencies = ["openai>=1.40", "pyyaml>=6.0"]
+
+[project.urls]
+Homepage = "https://github.com/Adityaraj0421/toolbench"
+Repository = "https://github.com/Adityaraj0421/toolbench"
+Findings = "https://github.com/Adityaraj0421/toolbench/blob/main/docs/FINDINGS.md"
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0"]
