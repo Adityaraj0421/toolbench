@@ -98,6 +98,11 @@ confirmed **0% unaided** for all six). The discouraging-description effect is
 | gemini-2.5-flash | 28/30 / 28/30 | 6/30 / 6/30 | **collapse** (−73 pts) |
 | mistral-small-3.2 | 18/30 / 18/30 | 6/30 / 6/30 | collapse + weak baseline |
 
+![Calculator-use rate per model, neutral vs discouraged tool description](under-calling.png)
+
+(Regenerate with `python scripts/plot_under_calling.py` after running the two
+under-calling configs.)
+
 Three behavioral clusters:
 1. **Description-proof** (gpt-4o-mini, deepseek-chat-v3): recognize the math is
    too hard and call the tool regardless of the discouragement. Best judgment.

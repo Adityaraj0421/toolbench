@@ -29,6 +29,8 @@ rerun. Tool-use rate (n=10; accuracy tracks it almost exactly):
 | `gemini-2.5-flash` | 93% | **20%** | collapses (−73 pts) |
 | `mistral-small-3.2` | 60% | **20%** | collapses |
 
+![Calculator-use rate per model, neutral vs discouraged tool description](docs/under-calling.png)
+
 The same sentence ranged from harmless to catastrophic to *beneficial* depending
 on the model. **There is no model-independent "good" tool description.** Full
 writeup, including over-calling and decoy-tool experiments:
